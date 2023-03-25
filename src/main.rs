@@ -1,10 +1,10 @@
 mod wav;
 
 fn main() {
-    // Read stdin as a raw WAV stream
+    // Read stdin as a raw WAVE stream
     let mut file = std::io::stdin();
 
-    // Parse WAV stream header
+    // Parse WAVE stream header
     let header = match wav::parse_wave_header(&mut file) {
         Err(e) => {
             eprintln!("Error: {e}");

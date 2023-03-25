@@ -1,7 +1,7 @@
 use std::fmt::{self, Display};
 use std::io;
 
-/* WAVE file header:
+/* WAVE file header spec from http://soundfile.sapp.org/doc/WaveFormat/
  *
  * Offset  Size  Name             Description
  * The canonical WAVE format starts with the RIFF header:
@@ -80,7 +80,7 @@ pub fn parse_wave_header(stream: &mut dyn io::Read) -> Result<WaveHeader, String
         Ok(n) => {
             if n != 44 {
                 return Err(format!(
-                    "WAV header size must be 44-bytes long, but got {n}."
+                    "WAVE header size must be 44-bytes long, but got {n}."
                 ));
             }
         }
@@ -112,13 +112,22 @@ pub fn parse_wave_header(stream: &mut dyn io::Read) -> Result<WaveHeader, String
 impl WaveHeader {
     pub fn is_valid(&self) -> Result<(), String> {
         if self.chunk_id != 0x46464952 {
-            return Err("Stream must have RIFF header.".to_string());
+            return Err(format!(
+                "Stream must have 'RIFF' header, but got 0x{:x}.",
+                self.chunk_id
+            ));
         }
         if self.format != 0x45564157 {
-            return Err("Stream must be WAVE format.".to_string());
+            return Err(format!(
+                "Stream must have 'WAVE' format, but got 0x{:x}.",
+                self.format
+            ));
         }
         if self.sub_chunk1_id != 0x20746d66 {
-            return Err("Stream must have 'fmt ' sub chuck.".to_string());
+            return Err(format!(
+                "Stream must have 'fmt ' sub chuck, but got 0x{:x}.",
+                self.sub_chunk1_id
+            ));
         }
         if self.sub_chunk1_size != 16 {
             return Err(format!(
@@ -155,8 +164,7 @@ WaveHeader {{
     bits_per_sample:{10} 
     sub_chunk2_id: {11}
     sub_chunk2_size: {12}
-}}
-"#,
+}}"#,
             self.chunk_id,
             self.chunk_size,
             self.format,
